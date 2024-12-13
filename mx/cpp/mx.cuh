@@ -4,6 +4,8 @@
 #include "common.cuh"
 #include "shared_exp.cuh"
 #include "quantize.cuh"
+#include <cuda_bf16.h>
+typedef __nv_bfloat16 nv_bfloat16;
 
 //-----------------------------------------------------------------------
 // quantize_mx_cuda_kernel
@@ -37,7 +39,7 @@ __global__ void quantize_mx_cuda_kernel(
     bool flush_tile = (shared_exp == 0 && flush_fp32_subnorms);
 
     // Compute the shared scale
-    const float scale = mx_get_shared_scale(
+    nv_bfloat16 scale = mx_get_shared_scale(
           shared_exp, scale_bits, elem_max_norm);
     
     // quantize_mx_elem is overloaded for fp32/bf16
@@ -82,7 +84,7 @@ __global__ void quantize_mx_innermost_cuda_kernel (
     bool flush_tile = (shared_exp == 0 && flush_fp32_subnorms);
 
     // Compute the shared scale
-    const float scale = mx_get_shared_scale(
+    nv_bfloat16 scale = mx_get_shared_scale(
           shared_exp, scale_bits, elem_max_norm);
 
     out[offset] = (T)quantize_mx_elem(
@@ -142,7 +144,7 @@ __global__ void quantize_mx_by_tile_cuda_kernel (
     bool flush_tile = (shared_exp == 0 && flush_fp32_subnorms);
 
     // Compute the shared scale
-    const float scale = mx_get_shared_scale(
+    nv_bfloat16 scale = mx_get_shared_scale(
           shared_exp, scale_bits, elem_max_norm);
 
     // Loop over bounding box to quantize

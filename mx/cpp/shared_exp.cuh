@@ -2,6 +2,7 @@
 #define PYT_MX_SHARED_EXP_CUH
 
 #include "common.cuh"
+#include <cuda_bf16.h>
 
 //-----------------------------------------------------------------------
 // Bound the shared_exp based on ebits
@@ -24,8 +25,10 @@ int clamp_shared_exp(
 //-----------------------------------------------------------------------
 // Compute shared scale for MX
 //-----------------------------------------------------------------------
+typedef __nv_bfloat16 nv_bfloat16;
+
 __host__ __device__ __forceinline__
-float mx_get_shared_scale(
+nv_bfloat16 mx_get_shared_scale(
     int shared_exp,
     const int scale_bits,
     const float elem_max_norm
@@ -45,7 +48,11 @@ float mx_get_shared_scale(
             (FLOAT32_IMPLIED1 >> 1) : 0;
 
     // Construct scale
-    return construct_float(0, shared_exp, scale_mant);
+    //return construct_float(0, shared_exp, scale_mant);
+
+    const float x = construct_float(0, shared_exp, scale_mant);
+
+    return __float2bfloat16(x);
 }
 
 #endif

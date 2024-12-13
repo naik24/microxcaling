@@ -5,6 +5,8 @@
 #include "curand_kernel.h"
 #include "assert.h"
 #include <limits.h>
+#include <cuda_bf16.h>
+typedef __nv_bfloat16 nv_bfloat16;
 
 //---------------------------------------------------------
 // Shift right and round a float32 mantissa
@@ -160,20 +162,22 @@ float quantize_elemwise(
 __host__ __device__ __forceinline__
 float quantize_mx_elem(
     const float input,
-    const float scale,
+    nv_bfloat16 scale,
     const bool flush_tile,
     const int elem_ebits,
     const int elem_mbits,
     const float elem_max_norm,
     const RoundingMode rounding_mode = rd_away
 ) {
-    const float scaled_in = (flush_tile) ? 0 : input / scale;
+    const float scale_fp32 = __bfloat162float(scale);
+
+    const float scaled_in = (flush_tile) ? 0 : input / scale_fp32;
 
     const float scaled_out = quantize_elemwise(
             scaled_in, elem_mbits, elem_ebits, elem_max_norm,
             rounding_mode, true, true);
 
-    return scaled_out * scale;
+    return scaled_out * scale_fp32;
 }
 
 #endif

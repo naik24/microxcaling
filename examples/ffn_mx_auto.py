@@ -2,6 +2,9 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 import argparse
+import sys
+
+sys.path.insert(0, './')
 
 from mx import finalize_mx_specs
 from mx import mx_mapping
@@ -47,13 +50,14 @@ if __name__ == '__main__':
 
     # Simple MX spec for MXFP6 weights+activations
     mx_specs = {
-        'w_elem_format': 'fp6_e3m2',
-        'a_elem_format': 'fp6_e3m2',
+        'w_elem_format': 'fp8_e4m3',
+        'a_elem_format': 'fp8_e4m3',
         'block_size': 32,
         'bfloat': 16,
         'custom_cuda': True,
         # For quantization-aware finetuning, do backward pass in FP32
         'quantize_backprop': False,
+        'scale_bits': 16,
     }
     mx_specs = finalize_mx_specs(mx_specs)
 
